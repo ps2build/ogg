@@ -36,17 +36,19 @@ jobs:
         shell: pwsh
         run: cmake --install build
 
+      # Unsuffixed, matching sdk-core/sdk-world/audsrv - this is
+      # cross-compiled PS2 MIPS content, not a host binary.
       - name: Package
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}"
-          Compress-Archive -Path C:\ps2dev-consumer\packages\world\ogg\* -DestinationPath "ogg-$version-windows-x64.zip"
+          Compress-Archive -Path C:\ps2dev-consumer\packages\world\ogg\* -DestinationPath "ogg-$version.zip"
 
       - name: Publish release
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}"
-          fj release create $version -t $version -a "ogg-$version-windows-x64.zip" -r ps2/ogg
+          fj release create $version -t $version -a "ogg-$version.zip" -r ps2/ogg
 
       - name: Clean up
         if: always()
