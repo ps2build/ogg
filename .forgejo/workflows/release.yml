@@ -54,5 +54,5 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          Remove-Item -Force "ogg-*-windows-x64.zip" -ErrorAction SilentlyContinue
+          Remove-Item -Force "ogg-*.zip" -ErrorAction SilentlyContinue
           Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
