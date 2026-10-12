@@ -54,13 +54,3 @@ jobs:
 
       - name: Install (llvm)
         run: cmake --install build-llvm
-
-      - name: Get short SHA
-        id: slug
-        run: echo "sha8=${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/upload-artifact@v3
-        if: success()
-        with:
-          name: ogg-${{ steps.slug.outputs.sha8 }}
-          path: /opt/ps2dev/packages/world/ogg
