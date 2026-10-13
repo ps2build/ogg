@@ -19,6 +19,10 @@ endif()
 file(READ configure.ac CONFIGURE_AC_CONTENTS)
 string(REGEX MATCH "AC_INIT\\(\\[libogg\\],\\[([0-9]*\\.[0-9]*\\.[0-9]*)\\]" DUMMY ${CONFIGURE_AC_CONTENTS})
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING "Build type")
+endif()
+
 project(ogg VERSION ${CMAKE_MATCH_1} LANGUAGES C)
 
 # Required modules
