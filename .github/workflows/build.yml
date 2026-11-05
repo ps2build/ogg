@@ -1,0 +1,47 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ps2build/setup-sdk@main
+        with:
+          ps2dev: /opt/ps2dev
+          components: toolchain,cmake,ninja,sdk-core,llvm-toolchain
+
+      - name: Configure
+        env:
+          PS2DEV: /opt/ps2dev
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_MAKE_PROGRAM=/opt/ps2dev/tools/ninja \
+            -DCMAKE_INSTALL_PREFIX=/opt/ps2dev/packages/world/ogg \
+            -DBUILD_TESTING=OFF
+
+      - name: Build
+        run: cmake --build build --target ogg
+
+      - name: Install
+        run: cmake --install build
+
+      - name: Configure (llvm)
+        env:
+          PS2DEV: /opt/ps2dev
+        run: |
+          cmake -S . -B build-llvm -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=/opt/ps2dev/cmake/ps2dev_llvm.cmake \
+            -DCMAKE_MAKE_PROGRAM=/opt/ps2dev/tools/ninja \
+            -DCMAKE_INSTALL_PREFIX=/opt/ps2dev/packages-llvm/world/ogg \
+            -DBUILD_TESTING=OFF
+
+      - name: Build (llvm)
+        run: cmake --build build-llvm --target ogg
+
+      - name: Install (llvm)
+        run: cmake --install build-llvm
