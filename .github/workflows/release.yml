@@ -1,30 +1,26 @@
-name: Build
+name: Release
 
 on:
   push:
-  pull_request:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    runs-on: docker
+  release:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup cmake
-        uses: https://git.techwritescode.dev/techwritescode/setup-cmake@master
-
-      - uses: https://git.techwritescode.dev/ps2/setup-sdk@master
+      - uses: ps2build/setup-sdk@main
         with:
           ps2dev: /opt/ps2dev
           components: toolchain,cmake,ninja,sdk-core,llvm-toolchain
 
-      # CMAKE_MAKE_PROGRAM is set explicitly rather than relying on
-      # ninja being on PATH - this runs in a fresh Docker container
-      # each time, so "ps2build update ninja"'s install into
-      # $PS2DEV/tools/ninja is never actually on PATH here. Matches
-      # ps2build's own convention of resolving toolchain tools to
-      # absolute paths, not bare PATH lookups.
-      - name: Configure with CMake
+      - name: Configure
         env:
           PS2DEV: /opt/ps2dev
         run: |
@@ -39,7 +35,7 @@ jobs:
       - name: Install
         run: cmake --install build
 
-      - name: Configure with CMake (llvm)
+      - name: Configure (llvm)
         env:
           PS2DEV: /opt/ps2dev
         run: |
@@ -54,3 +50,18 @@ jobs:
 
       - name: Install (llvm)
         run: cmake --install build-llvm
+
+      - name: Bundle license
+        run: |
+          cp COPYING /opt/ps2dev/packages/world/ogg/COPYING
+          cp COPYING /opt/ps2dev/packages-llvm/world/ogg/COPYING
+
+      - name: Package
+        run: |
+          (cd /opt/ps2dev/packages/world/ogg && zip -qr "$GITHUB_WORKSPACE/ogg-${GITHUB_REF_NAME}-gcc.zip" .)
+          (cd /opt/ps2dev/packages-llvm/world/ogg && zip -qr "$GITHUB_WORKSPACE/ogg-${GITHUB_REF_NAME}-llvm.zip" .)
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" ogg-*.zip
