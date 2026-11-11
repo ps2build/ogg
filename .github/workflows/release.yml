@@ -13,6 +13,12 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Require a tag
+        if: github.ref_type != 'tag'
+        run: |
+          echo "Release must run on a v* tag, not $GITHUB_REF" >&2
+          exit 1
+
       - uses: actions/checkout@v4
 
       - uses: ps2build/setup-sdk@main
@@ -58,8 +64,9 @@ jobs:
 
       - name: Package
         run: |
-          (cd /opt/ps2dev/packages/world/ogg && zip -qr "$GITHUB_WORKSPACE/ogg-${GITHUB_REF_NAME}-gcc.zip" .)
-          (cd /opt/ps2dev/packages-llvm/world/ogg && zip -qr "$GITHUB_WORKSPACE/ogg-${GITHUB_REF_NAME}-llvm.zip" .)
+          (cd /opt/ps2dev && \
+            zip -qr "$GITHUB_WORKSPACE/ogg-${GITHUB_REF_NAME}-gcc.zip" packages/world/ogg && \
+            zip -qr "$GITHUB_WORKSPACE/ogg-${GITHUB_REF_NAME}-llvm.zip" packages-llvm/world/ogg)
 
       - name: Publish release
         env:
